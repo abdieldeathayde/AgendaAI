@@ -1,0 +1,28 @@
+{% extends 'base.html' %}
+{% block title %}{{ title }}{% endblock %}
+{% block content %}
+<div class="container">
+  <div class="panel" style="max-width: 620px; margin: 40px auto;">
+    <div class="header" style="margin-bottom: 8px;">
+      <div>
+        <h1>{{ title }}</h1>
+        <p class="subtitle">Confirmação de exclusão</p>
+      </div>
+    </div>
+
+    <p style="font-size: 1.05rem; line-height: 1.6; margin-bottom: 24px;">
+      Tem certeza que deseja excluir <strong>{{ object }}</strong>?
+      <br>
+      Essa ação não poderá ser desfeita.
+    </p>
+
+    <form method="post">
+      {% csrf_token %}
+      <div style="display:flex; gap:12px; flex-wrap:wrap;">
+        <button type="submit" class="btn btn-danger">Confirmar exclusão</button>
+        <a href="{% url return_url %}" class="btn btn-secondary">Cancelar</a>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}

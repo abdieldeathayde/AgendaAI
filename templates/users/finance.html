@@ -1,0 +1,46 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ title }}{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="panel">
+        <div class="header">
+            <div>
+                <h1>Financeiro</h1>
+                <p class="subtitle">Resumo financeiro e projeções do negócio</p>
+            </div>
+        </div>
+
+        <div class="overview-grid">
+            <div class="card">
+                <h3>Receita confirmada</h3>
+                <strong>R$ {{ upcoming_revenue }}</strong>
+            </div>
+            <div class="card">
+                <h3>Período analisado</h3>
+                <strong>Últimos 6 meses</strong>
+            </div>
+        </div>
+
+        <div class="card" style="margin-top: 20px;">
+            <h2>Receita mensal</h2>
+            {% if monthly_revenue %}
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 12px; align-items: end; min-height: 180px; margin-top: 20px;">
+                    {% for item in monthly_revenue %}
+                        <div style="display: flex; flex-direction: column; align-items: center; gap: 10px;">
+                            <div style="width: 100%; display: flex; justify-content: center; align-items: flex-end; min-height: 120px;">
+                                <div style="width: 100%; max-width: 56px; background: linear-gradient(180deg, #34d399 0%, #059669 100%); border-radius: 8px 8px 0 0; height: {% widthratio item.value 150 120 %}px; min-height: 8px;"></div>
+                            </div>
+                            <small>{{ item.label }}</small>
+                            <small>R$ {{ item.value }}</small>
+                        </div>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <p style="margin: 0; color: var(--muted);">Sem receita registrada.</p>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

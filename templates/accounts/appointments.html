@@ -1,0 +1,110 @@
+{% extends 'base.html' %}
+{% block title %}Agendamentos{% endblock %}
+{% block content %}
+<div class="container">
+  <div class="panel">
+    <div class="header">
+      <div>
+        <h1>Agendamentos</h1>
+        <p class="subtitle">Controle operacional e gestão de status do atendimento</p>
+      </div>
+      <div style="display:flex; gap:10px; flex-wrap:wrap;">
+        <a href="{% url 'appointments_export' %}{% if selected_status %}?status={{ selected_status }}{% endif %}{% if selected_professional %}{% if selected_status %}&{% else %}?{% endif %}professional={{ selected_professional }}{% endif %}" class="btn btn-secondary">Exportar CSV</a>
+        <a href="{% url 'appointment_create' %}" class="btn">Novo agendamento</a>
+      </div>
+    </div>
+
+    <div class="summary-row">
+      <div class="summary-box">
+        <span class="summary-label">Total Cadastrado</span>
+        <strong>{{ total_count }}</strong>
+      </div>
+      <div class="summary-box accent">
+        <span class="summary-label">Agendamentos de Hoje</span>
+        <strong>{{ today_count }}</strong>
+      </div>
+    </div>
+
+    <div class="toolbar" style="align-items: flex-end;">
+      <span class="toolbar-title">Status do atendimento</span>
+      <div class="chip-group">
+        <a href="{% url 'appointments' %}{% if selected_professional %}?professional={{ selected_professional }}{% endif %}" class="chip {% if not selected_status %}active{% endif %}">Todos</a>
+        <a href="{% url 'appointments' %}?status=SC{% if selected_professional %}&professional={{ selected_professional }}{% endif %}" class="chip {% if selected_status == 'SC' %}active{% endif %}">Agendado</a>
+        <a href="{% url 'appointments' %}?status=CF{% if selected_professional %}&professional={{ selected_professional }}{% endif %}" class="chip {% if selected_status == 'CF' %}active{% endif %}">Confirmado</a>
+        <a href="{% url 'appointments' %}?status=CO{% if selected_professional %}&professional={{ selected_professional }}{% endif %}" class="chip {% if selected_status == 'CO' %}active{% endif %}">Concluído</a>
+        <a href="{% url 'appointments' %}?status=CA{% if selected_professional %}&professional={{ selected_professional }}{% endif %}" class="chip {% if selected_status == 'CA' %}active{% endif %}">Cancelado</a>
+      </div>
+      <div style="min-width: 220px; margin-left: auto;">
+        <label for="professional-filter" style="display:block; margin-bottom:6px; font-size:0.75rem; font-weight:700; color: var(--muted);">Profissional</label>
+        <select id="professional-filter" class="form-control" onchange="window.location='{{ request.path }}' + (this.value ? '?professional=' + this.value + '{% if selected_status %}&status={{ selected_status }}{% endif %}' : '{% if selected_status %}?status={{ selected_status }}{% endif %}')">
+          <option value="">Todos os profissionais</option>
+          {% for professional in professionals %}
+            <option value="{{ professional.pk }}" {% if selected_professional == professional.pk|stringformat:'s' %}selected{% endif %}>{{ professional.name }}</option>
+          {% endfor %}
+        </select>
+      </div>
+    </div>
+
+    <table>
+      <thead>
+        <tr>
+          <th>Cliente</th>
+          <th>Serviço / Profissional</th>
+          <th>Data & Hora</th>
+          <th>Status</th>
+          <th>Valor</th>
+          <th>Ações Rápidas</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for appointment in appointments %}
+        <tr>
+          <td>
+            <strong>{{ appointment.customer.name }}</strong>
+            {% if appointment.customer.phone %}<br><small style="color: var(--muted);">{{ appointment.customer.phone }}</small>{% endif %}
+          </td>
+          <td>
+            <div>{{ appointment.service.name }}</div>
+            <small style="color: var(--muted);">com {{ appointment.service.professional.name }}</small>
+          </td>
+          <td>{{ appointment.start_time|date:"d/m/Y H:i" }}</td>
+          <td>
+            <span class="status-pill
+              {% if appointment.status == 'SC' %}status-pill--scheduled
+              {% elif appointment.status == 'CF' %}status-pill--confirmed
+              {% elif appointment.status == 'CO' %}status-pill--completed
+              {% else %}status-pill--cancelled{% endif %}">
+              {{ appointment.get_status_display }}
+            </span>
+          </td>
+          <td>R$ {{ appointment.price|default:appointment.service.price }}</td>
+          <td>
+            <div style="display:flex; gap:6px; flex-wrap:wrap; align-items:center;">
+              {% if appointment.status == 'SC' %}
+                <a href="{% url 'appointment_status_update' appointment.pk 'CF' %}?next={{ request.get_full_path|urlencode }}" class="btn" style="background:#166534; padding:5px 8px; font-size:11px;" title="Confirmar agendamento">✓ Confirmar</a>
+              {% elif appointment.status == 'CF' %}
+                <a href="{% url 'appointment_status_update' appointment.pk 'CO' %}?next={{ request.get_full_path|urlencode }}" class="btn" style="background:#5b21b6; padding:5px 8px; font-size:11px;" title="Marcar como concluído">★ Concluir</a>
+              {% endif %}
+
+              {% if appointment.status == 'SC' or appointment.status == 'CF' %}
+                <a href="{% url 'appointment_status_update' appointment.pk 'CA' %}?next={{ request.get_full_path|urlencode }}" class="btn btn-secondary" style="padding:5px 8px; font-size:11px;" onclick="return confirm('Deseja realmente cancelar este agendamento?');" title="Cancelar agendamento">✕ Cancelar</a>
+              {% endif %}
+
+              <a href="{% url 'appointment_update' appointment.pk %}" class="btn" style="padding:5px 8px; font-size:11px; background:#475569;">Editar</a>
+              <form method="post" action="{% url 'appointment_delete' appointment.pk %}" style="display:inline; margin:0;" onsubmit="return confirm('Deseja realmente excluir este agendamento?');">
+                {% csrf_token %}
+                <button type="submit" class="btn btn-danger" style="padding:5px 8px; font-size:11px;">Excluir</button>
+              </form>
+            </div>
+          </td>
+        </tr>
+        {% empty %}
+        <tr>
+          <td colspan="6">Nenhum agendamento encontrado para o filtro selecionado.</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

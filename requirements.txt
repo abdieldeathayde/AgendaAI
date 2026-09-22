@@ -1,0 +1,10 @@
+Django==6.1.1
+PyMySQL==1.1.1
+django-cors-headers==4.7.0
+djangorestframework==3.18.1
+djangorestframework-simplejwt==5.5.1
+drf-spectacular==0.30.0
+python-dotenv==1.2.3
+dj-database-url==3.1.2
+whitenoise==6.11.0
+gunicorn==23.0.0

@@ -1,0 +1,59 @@
+{% extends 'base.html' %}
+{% block title %}Serviços{% endblock %}
+{% block content %}
+<div class="container">
+  <div class="panel">
+    <div class="header">
+      <div>
+        <h1>Serviços</h1>
+        <p class="subtitle">Catálogo de serviços e preços</p>
+      </div>
+      <a href="{% url 'service_create' %}" class="btn">Novo serviço</a>
+    </div>
+
+    <div class="summary-row">
+      <div class="summary-box">
+        <span class="summary-label">Catálogo</span>
+        <strong>{{ services|length }}</strong>
+      </div>
+      <div class="summary-box accent">
+        <span class="summary-label">Valor médio</span>
+        <strong>R$ {{ average_price|floatformat:2 }}</strong>
+      </div>
+    </div>
+
+    <table>
+      <thead>
+        <tr>
+          <th>Nome</th>
+          <th>Profissional</th>
+          <th>Preço</th>
+          <th>Ações</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for service in services %}
+        <tr>
+          <td>{{ service.name }}</td>
+          <td>{{ service.professional.name }}</td>
+          <td>R$ {{ service.price }}</td>
+          <td>
+            <div style="display:flex; gap:8px; flex-wrap:wrap;">
+              <a href="{% url 'service_update' service.pk %}" class="btn" style="padding:8px 12px; font-size:12px;">Editar</a>
+              <form method="post" action="{% url 'service_delete' service.pk %}" style="display:inline; margin:0;">
+                {% csrf_token %}
+                <button type="submit" class="btn btn-danger" style="padding:8px 12px; font-size:12px;">Excluir</button>
+              </form>
+            </div>
+          </td>
+        </tr>
+        {% empty %}
+        <tr>
+          <td colspan="4">Nenhum serviço cadastrado.</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

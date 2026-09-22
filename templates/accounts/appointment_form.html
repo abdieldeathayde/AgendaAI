@@ -1,0 +1,79 @@
+{% extends 'base.html' %}
+{% block title %}{{ title }}{% endblock %}
+{% block content %}
+<div class="container">
+  <div class="panel form-card">
+    <div class="form-section-header">
+      <div>
+        <h1>{{ title }}</h1>
+        <p class="subtitle">Agendamento e status do atendimento</p>
+      </div>
+    </div>
+
+    <form method="post">
+      {% csrf_token %}
+      <div class="form-layout">
+        {% for field in form %}
+        <div class="field" {% if field.name == 'notes' %}style="grid-column: 1 / -1;"{% endif %}>
+          <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+          {{ field }}
+          {% if field.help_text %}
+            <small class="field-hint" style="color: var(--muted); font-size: 0.8rem; margin-top: 4px; display: block;">{{ field.help_text }}</small>
+          {% endif %}
+          {% if field.errors %}
+            <ul class="errorlist">
+              {% for error in field.errors %}
+                <li>{{ error }}</li>
+              {% endfor %}
+            </ul>
+          {% endif %}
+        </div>
+        {% endfor %}
+      </div>
+
+      <div class="form-actions">
+        <button type="submit" class="btn">Salvar Agendamento</button>
+        <a href="{% url 'appointments' %}" class="btn btn-secondary">Cancelar</a>
+      </div>
+    </form>
+  </div>
+</div>
+
+{% if service_durations_json %}
+  <script type="application/json" id="service-durations-data">{{ service_durations_json|safe }}</script>
+  <script>
+  document.addEventListener('DOMContentLoaded', function() {
+    const dataElem = document.getElementById('service-durations-data');
+    if (!dataElem) return;
+    const serviceDurations = JSON.parse(dataElem.textContent || '{}');
+    const serviceSelect = document.getElementById('id_service');
+    const startInput = document.getElementById('id_start_time');
+    const endInput = document.getElementById('id_end_time');
+
+    function calculateEndTime() {
+      if (!serviceSelect || !startInput || !endInput) return;
+      const serviceId = serviceSelect.value;
+      const duration = serviceDurations[serviceId];
+      const startVal = startInput.value;
+
+      if (serviceId && duration && startVal) {
+        const startDate = new Date(startVal);
+        if (!isNaN(startDate.getTime())) {
+          const endDate = new Date(startDate.getTime() + duration * 60000);
+          const pad = (n) => String(n).padStart(2, '0');
+          const year = endDate.getFullYear();
+          const month = pad(endDate.getMonth() + 1);
+          const day = pad(endDate.getDate());
+          const hours = pad(endDate.getHours());
+          const minutes = pad(endDate.getMinutes());
+          endInput.value = `${year}-${month}-${day}T${hours}:${minutes}`;
+        }
+      }
+    }
+
+    if (serviceSelect) serviceSelect.addEventListener('change', calculateEndTime);
+    if (startInput) startInput.addEventListener('change', calculateEndTime);
+  });
+  </script>
+{% endif %}
+{% endblock %}

@@ -1,0 +1,61 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ title }}{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="panel">
+        <div class="header">
+            <div>
+                <h1>Relatórios</h1>
+                <p class="subtitle">Resumo operacional por status, profissionais e serviços</p>
+            </div>
+        </div>
+
+        <div class="overview-grid">
+            {% for item in revenue_by_status %}
+            <div class="card">
+                <h3>{{ item.label }}</h3>
+                <strong>{{ item.value }}</strong>
+            </div>
+            {% endfor %}
+        </div>
+
+        <div class="overview-grid" style="margin-top: 20px;">
+            <div class="card">
+                <h2>Top profissionais</h2>
+                {% if top_professionals %}
+                    <ul style="padding-left: 18px; margin: 0;">
+                        {% for item in top_professionals %}
+                            <li style="margin-bottom: 12px;">
+                                <strong>{{ item.service__professional__name }}</strong>
+                                <br>
+                                <small>{{ item.total }} agendamentos</small>
+                            </li>
+                        {% endfor %}
+                    </ul>
+                {% else %}
+                    <p style="margin: 0; color: var(--muted);">Sem dados disponíveis.</p>
+                {% endif %}
+            </div>
+
+            <div class="card">
+                <h2>Top serviços</h2>
+                {% if top_services %}
+                    <ul style="padding-left: 18px; margin: 0;">
+                        {% for item in top_services %}
+                            <li style="margin-bottom: 12px;">
+                                <strong>{{ item.service__name }}</strong>
+                                <br>
+                                <small>{{ item.total }} agendamentos</small>
+                            </li>
+                        {% endfor %}
+                    </ul>
+                {% else %}
+                    <p style="margin: 0; color: var(--muted);">Sem dados disponíveis.</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

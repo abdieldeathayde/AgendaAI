@@ -1,0 +1,57 @@
+{% extends 'base.html' %}
+{% block title %}Profissionais{% endblock %}
+{% block content %}
+<div class="container">
+  <div class="panel">
+    <div class="header">
+      <div>
+        <h1>Profissionais</h1>
+        <p class="subtitle">Equipe de atendimento e serviços</p>
+      </div>
+      <a href="{% url 'professional_create' %}" class="btn">Novo profissional</a>
+    </div>
+
+    <div class="summary-row">
+      <div class="summary-box">
+        <span class="summary-label">Equipe</span>
+        <strong>{{ professionals|length }}</strong>
+      </div>
+      <div class="summary-box accent">
+        <span class="summary-label">Disponíveis</span>
+        <strong>{{ professionals|length }}</strong>
+      </div>
+    </div>
+
+    <table>
+      <thead>
+        <tr>
+          <th>Nome</th>
+          <th>Especialidade</th>
+          <th>Ações</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for professional in professionals %}
+        <tr>
+          <td>{{ professional.name }}</td>
+          <td>{{ professional.specialty|default:'—' }}</td>
+          <td>
+            <div style="display:flex; gap:8px; flex-wrap:wrap;">
+              <a href="{% url 'professional_update' professional.pk %}" class="btn" style="padding:8px 12px; font-size:12px;">Editar</a>
+              <form method="post" action="{% url 'professional_delete' professional.pk %}" style="display:inline; margin:0;">
+                {% csrf_token %}
+                <button type="submit" class="btn btn-danger" style="padding:8px 12px; font-size:12px;">Excluir</button>
+              </form>
+            </div>
+          </td>
+        </tr>
+        {% empty %}
+        <tr>
+          <td colspan="3">Nenhum profissional cadastrado.</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

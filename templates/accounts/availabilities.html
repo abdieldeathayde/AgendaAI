@@ -1,0 +1,71 @@
+{% extends 'base.html' %}
+{% block title %}Horários de Atendimento{% endblock %}
+{% block content %}
+<div class="container">
+  <div class="panel">
+    <div class="header">
+      <div>
+        <h1>Horários de Atendimento</h1>
+        <p class="subtitle">Configuração da jornada e disponibilidade semanal dos profissionais</p>
+      </div>
+      <a href="{% url 'availability_create' %}{% if selected_pro %}?professional={{ selected_pro }}{% endif %}" class="btn">Configurar novo horário</a>
+    </div>
+
+    <div class="summary-row">
+      <div class="summary-box">
+        <span class="summary-label">Total de Registros</span>
+        <strong>{{ availabilities|length }}</strong>
+      </div>
+      <div class="summary-box accent">
+        <span class="summary-label">Profissionais Ativos</span>
+        <strong>{{ professionals|length }}</strong>
+      </div>
+    </div>
+
+    <div class="toolbar" style="margin-bottom: 20px;">
+      <div style="min-width: 250px;">
+        <label for="pro-filter" style="display:block; margin-bottom:6px; font-size:0.75rem; font-weight:700; color: var(--muted);">Filtrar por Profissional</label>
+        <select id="pro-filter" class="form-control" onchange="window.location='{{ request.path }}' + (this.value ? '?professional=' + this.value : '')">
+          <option value="">Todos os profissionais</option>
+          {% for pro in professionals %}
+            <option value="{{ pro.pk }}" {% if selected_pro == pro.pk|stringformat:'s' %}selected{% endif %}>{{ pro.name }}</option>
+          {% endfor %}
+        </select>
+      </div>
+    </div>
+
+    <table>
+      <thead>
+        <tr>
+          <th>Profissional</th>
+          <th>Dia da Semana</th>
+          <th>Início</th>
+          <th>Término</th>
+          <th>Ações</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for av in availabilities %}
+        <tr>
+          <td><strong>{{ av.professional.name }}</strong></td>
+          <td><span class="status-pill status-pill--confirmed">{{ av.get_day_of_week_display }}</span></td>
+          <td>{{ av.start_time|time:"H:i" }}</td>
+          <td>{{ av.end_time|time:"H:i" }}</td>
+          <td>
+            <form method="post" action="{% url 'availability_delete' av.pk %}" style="display:inline; margin:0;" onsubmit="return confirm('Deseja realmente remover este horário de atendimento?');">
+              {% csrf_token %}
+              <button type="submit" class="btn btn-danger" style="padding:6px 10px; font-size:12px;">Remover</button>
+            </form>
+          </td>
+        </tr>
+        {% empty %}
+        <tr>
+          <td colspan="5">Nenhum horário de atendimento configurado.</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}
+

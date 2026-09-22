@@ -1,0 +1,57 @@
+{% extends 'base.html' %}
+{% block title %}Clientes{% endblock %}
+{% block content %}
+<div class="container">
+  <div class="panel">
+    <div class="header">
+      <div>
+        <h1>Clientes</h1>
+        <p class="subtitle">Base de clientes do negócio</p>
+      </div>
+      <a href="{% url 'customer_create' %}" class="btn">Novo cliente</a>
+    </div>
+
+    <div class="summary-row">
+      <div class="summary-box">
+        <span class="summary-label">Total</span>
+        <strong>{{ customers|length }}</strong>
+      </div>
+      <div class="summary-box accent">
+        <span class="summary-label">Ativos</span>
+        <strong>{{ customers|length }}</strong>
+      </div>
+    </div>
+
+    <table>
+      <thead>
+        <tr>
+          <th>Nome</th>
+          <th>Telefone</th>
+          <th>Ações</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for customer in customers %}
+        <tr>
+          <td>{{ customer.name }}</td>
+          <td>{{ customer.phone|default:'—' }}</td>
+          <td>
+            <div style="display:flex; gap:8px; flex-wrap:wrap;">
+              <a href="{% url 'customer_update' customer.pk %}" class="btn" style="padding:8px 12px; font-size:12px;">Editar</a>
+              <form method="post" action="{% url 'customer_delete' customer.pk %}" style="display:inline; margin:0;">
+                {% csrf_token %}
+                <button type="submit" class="btn btn-danger" style="padding:8px 12px; font-size:12px;">Excluir</button>
+              </form>
+            </div>
+          </td>
+        </tr>
+        {% empty %}
+        <tr>
+          <td colspan="3">Nenhum cliente cadastrado.</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

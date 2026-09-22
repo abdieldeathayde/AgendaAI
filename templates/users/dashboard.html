@@ -1,0 +1,215 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ title }}{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="panel">
+        <div class="header">
+            <div>
+                <h1>{{ title }}</h1>
+                <p class="subtitle">Visão executiva da operação da barbearia</p>
+            </div>
+        </div>
+
+        <div class="card metric-card--primary" style="margin-bottom: 20px; border: 1px solid #dbeafe;">
+            <p style="margin: 0 0 8px; color: #374151;">Bem-vindo ao painel do sistema.</p>
+            <p style="margin: 0; font-size: 1.05rem;"><strong>Usuário:</strong> {{ user.get_full_name|default:user.username }}</p>
+        </div>
+
+        <div class="overview-grid">
+            <a href="{% url 'customers' %}" class="card metric-card metric-card--primary">
+                <h3>Clientes</h3>
+                <strong>{{ total_customers }}</strong>
+            </a>
+            <a href="{% url 'professionals' %}" class="card metric-card metric-card--success">
+                <h3>Profissionais</h3>
+                <strong>{{ total_professionals }}</strong>
+            </a>
+            <a href="{% url 'services' %}" class="card metric-card metric-card--warning">
+                <h3>Serviços</h3>
+                <strong>{{ total_services }}</strong>
+            </a>
+            <a href="{% url 'appointments' %}" class="card metric-card metric-card--accent">
+                <h3>Agendamentos</h3>
+                <strong>{{ total_appointments }}</strong>
+            </a>
+        </div>
+
+        <div class="overview-grid" style="margin-top: 10px;">
+            <div class="card metric-card--success">
+                <h3>Confirmados</h3>
+                <strong>{{ confirmed_appointments }}</strong>
+            </div>
+            <div class="card metric-card--accent">
+                <h3>Concluídos</h3>
+                <strong>{{ completed_appointments }}</strong>
+            </div>
+            <div class="card metric-card--primary">
+                <h3>Agendados</h3>
+                <strong>{{ scheduled_appointments }}</strong>
+            </div>
+            <div class="card metric-card--warning">
+                <h3>Receita total</h3>
+                <strong>R$ {{ revenue }}</strong>
+            </div>
+        </div>
+
+        <div class="overview-grid" style="margin-top: 10px;">
+            <div class="card metric-card--primary">
+                <h3>Hoje</h3>
+                <strong>{{ today_appointments }}</strong>
+                <p style="margin: 8px 0 0; color: var(--muted);">agendamentos no dia</p>
+            </div>
+            <div class="card metric-card--success">
+                <h3>Receita do dia</h3>
+                <strong>R$ {{ today_revenue }}</strong>
+                <p style="margin: 8px 0 0; color: var(--muted);">serviços concluídos hoje</p>
+            </div>
+            <div class="card metric-card--warning">
+                <h3>Próximos</h3>
+                <strong>{{ upcoming_appointments|length }}</strong>
+                <p style="margin: 8px 0 0; color: var(--muted);">compromissos futuros</p>
+            </div>
+            <div class="card metric-card--accent">
+                <h3>Atendimento</h3>
+                <strong>{{ completed_appointments|add:confirmed_appointments }}</strong>
+                <p style="margin: 8px 0 0; color: var(--muted);">etapas em andamento</p>
+            </div>
+        </div>
+
+        <div class="card" style="margin-top: 20px;">
+            <div class="header" style="margin-bottom: 0;">
+                <div>
+                    <h2>Últimos {{ period_days }} dias</h2>
+                    <p class="subtitle" style="margin-bottom: 0;">Resumo do desempenho por período</p>
+                </div>
+                <div class="chip-group">
+                    <a href="?period=7" class="chip {% if period_filter == '7' %}active{% endif %}">7 dias</a>
+                    <a href="?period=30" class="chip {% if period_filter == '30' %}active{% endif %}">30 dias</a>
+                    <a href="?period=90" class="chip {% if period_filter == '90' %}active{% endif %}">90 dias</a>
+                </div>
+            </div>
+            <div class="summary-row" style="margin-top: 16px;">
+                <div class="summary-box">
+                    <span class="summary-label">Agendamentos</span>
+                    <strong>{{ period_total_appointments }}</strong>
+                </div>
+                <div class="summary-box accent">
+                    <span class="summary-label">Receita</span>
+                    <strong>R$ {{ period_revenue }}</strong>
+                </div>
+            </div>
+        </div>
+
+        <div class="card" style="margin-top: 20px;">
+            <h2>Tendência diária</h2>
+            {% if trend_data %}
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(100px, 1fr)); gap: 12px; align-items: end; min-height: 180px; margin-top: 20px;">
+                    {% for item in trend_data %}
+                        <div style="display: flex; flex-direction: column; align-items: center; gap: 10px;">
+                            <div style="width: 100%; display: flex; justify-content: center; align-items: flex-end; min-height: 120px;">
+                                <div style="width: 100%; max-width: 54px; background: linear-gradient(180deg, #60a5fa 0%, #2563eb 100%); border-radius: 8px 8px 0 0; height: {% widthratio item.appointments 6 120 %}px; min-height: 8px;"></div>
+                            </div>
+                            <small>{{ item.date }}</small>
+                            <small>{{ item.appointments }} ag</small>
+                        </div>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <p style="margin: 0; color: var(--muted);">Sem dados de tendência para o período selecionado.</p>
+            {% endif %}
+        </div>
+
+        <div class="overview-grid" style="margin-top: 20px;">
+            <div class="card">
+                <h2>Desempenho por serviço</h2>
+                {% if top_services %}
+                    <ul style="padding-left: 18px; margin: 0;">
+                        {% for service in top_services %}
+                            <li style="margin-bottom: 12px; line-height: 1.5;">
+                                <strong>{{ service.name }}</strong>
+                                <br>
+                                <small>{{ service.total_appointments }} agendamentos · R$ {{ service.price }}</small>
+                            </li>
+                        {% endfor %}
+                    </ul>
+                {% else %}
+                    <p style="margin: 0; color: var(--muted);">Sem informações de desempenho por serviço.</p>
+                {% endif %}
+            </div>
+
+            <div class="card">
+                <h2>Profissionais em destaque</h2>
+                {% if top_professionals %}
+                    <ul style="padding-left: 18px; margin: 0;">
+                        {% for professional in top_professionals %}
+                            <li style="margin-bottom: 12px; line-height: 1.5;">
+                                <strong>{{ professional.name }}</strong>
+                                <br>
+                                <small>{{ professional.total_appointments }} agendamentos no período</small>
+                            </li>
+                        {% endfor %}
+                    </ul>
+                {% else %}
+                    <p style="margin: 0; color: var(--muted);">Sem dados de profissionais em destaque.</p>
+                {% endif %}
+            </div>
+        </div>
+
+        <div class="overview-grid" style="margin-top: 20px;">
+            <div class="card">
+                <h2>Próximos agendamentos</h2>
+                {% if upcoming_appointments %}
+                    <ul style="padding-left: 18px; margin: 0;">
+                        {% for appointment in upcoming_appointments %}
+                            <li style="margin-bottom: 12px; line-height: 1.5;">
+                                <strong>{{ appointment.customer.name }}</strong> • {{ appointment.service.name }}
+                                <br>
+                                <small>
+                                    {{ appointment.start_time|date:"d/m/Y H:i" }} · 
+                                    <span class="status-pill
+                                        {% if appointment.status == 'SC' %}status-pill--scheduled
+                                        {% elif appointment.status == 'CF' %}status-pill--confirmed
+                                        {% elif appointment.status == 'CO' %}status-pill--completed
+                                        {% else %}status-pill--cancelled{% endif %}">
+                                        {{ appointment.get_status_display }}
+                                    </span>
+                                </small>
+                            </li>
+                        {% endfor %}
+                    </ul>
+                {% else %}
+                    <p style="margin: 0; color: var(--muted);">Nenhum agendamento futuro cadastrado.</p>
+                {% endif %}
+            </div>
+
+            <div class="card">
+                <h2>Agendamentos recentes</h2>
+                {% if recent_appointments %}
+                    <ul style="padding-left: 18px; margin: 0;">
+                        {% for appointment in recent_appointments %}
+                            <li style="margin-bottom: 12px; line-height: 1.5;">
+                                <strong>{{ appointment.customer.name }}</strong> → {{ appointment.service.name }}
+                                <br>
+                                <small>
+                                    {{ appointment.start_time|date:"d/m/Y H:i" }} · 
+                                    <span class="status-pill
+                                        {% if appointment.status == 'SC' %}status-pill--scheduled
+                                        {% elif appointment.status == 'CF' %}status-pill--confirmed
+                                        {% elif appointment.status == 'CO' %}status-pill--completed
+                                        {% else %}status-pill--cancelled{% endif %}">
+                                        {{ appointment.get_status_display }}
+                                    </span>
+                                </small>
+                            </li>
+                        {% endfor %}
+                    </ul>
+                {% else %}
+                    <p style="margin: 0; color: var(--muted);">Nenhum agendamento registrado ainda.</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
