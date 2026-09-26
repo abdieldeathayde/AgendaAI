@@ -1,8 +1,12 @@
 from datetime import timedelta
 
 from django import forms
+from django.contrib.auth import get_user_model
+from django.contrib.auth.forms import UserCreationForm
 
 from .models import Appointment, Availability, Customer, Professional, Service
+
+User = get_user_model()
 
 
 class LoginForm(forms.Form):
@@ -15,6 +19,36 @@ class LoginForm(forms.Form):
         label='Senha',
         widget=forms.PasswordInput(attrs={'class': 'form-control', 'placeholder': 'Digite sua senha'})
     )
+
+
+class UserRegistrationForm(UserCreationForm):
+    first_name = forms.CharField(max_length=150, required=True, label='Nome', widget=forms.TextInput(attrs={'class': 'form-control'}))
+    last_name = forms.CharField(max_length=150, required=True, label='Sobrenome', widget=forms.TextInput(attrs={'class': 'form-control'}))
+    email = forms.EmailField(required=True, label='E-mail', widget=forms.EmailInput(attrs={'class': 'form-control'}))
+    phone = forms.CharField(max_length=20, required=False, label='Telefone', widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder': '(11) 99999-9999'}))
+
+    class Meta:
+        model = User
+        fields = ('username', 'first_name', 'last_name', 'email', 'phone', 'password1', 'password2')
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        for field_name in ['username', 'password1', 'password2']:
+            self.fields[field_name].widget.attrs.update({'class': 'form-control'})
+
+    def save(self, commit=True):
+        user = super().save(commit=False)
+        user.email = self.cleaned_data['email']
+        user.phone = self.cleaned_data.get('phone', '')
+        user.is_customer = True
+        user.is_professional = False
+        if commit:
+            user.save()
+            Customer.objects.get_or_create(
+                user=user,
+                defaults={'name': f"{user.first_name} {user.last_name}".strip() or user.username, 'phone': user.phone}
+            )
+        return user
 
 
 class CustomerForm(forms.ModelForm):

@@ -2,7 +2,7 @@ from datetime import date, timedelta
 
 from django.contrib.auth.decorators import login_required
 from django.db.models import Count, Sum
-from django.shortcuts import render
+from django.shortcuts import redirect, render
 from django.utils import timezone
 
 from accounts.models import Appointment, Customer, Professional, Service

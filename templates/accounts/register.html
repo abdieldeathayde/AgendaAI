@@ -1,11 +1,12 @@
 {% extends 'base.html' %}
 
-{% block title %}AgendaAI | Login{% endblock %}
+{% block title %}AgendaAI | Cadastro{% endblock %}
 
 {% block content %}
 <div class="auth-shell">
-    <div class="auth-panel">
+    <div class="auth-panel" style="max-width: 560px;">
         <div class="brand-mark">AgendaAI</div>
+        <h2 style="text-align:center; margin-bottom: 16px;">Crie sua conta</h2>
 
         {% if messages %}
             <ul class="messages">
@@ -40,10 +41,10 @@
                 </div>
             {% endfor %}
 
-            <button type="submit" class="btn" style="width:100%;">Entrar</button>
+            <button type="submit" class="btn" style="width:100%;">Cadastrar</button>
             <p style="text-align:center; margin-top:16px;">
-                Ainda não tem conta?
-                <a href="{% url 'register' %}" style="color: var(--primary-dark); font-weight:700; text-decoration:none;">Cadastre-se</a>
+                Já tem conta?
+                <a href="{% url 'login' %}" style="color: var(--primary-dark); font-weight:700; text-decoration:none;">Entrar</a>
             </p>
         </form>
     </div>

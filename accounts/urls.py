@@ -23,10 +23,11 @@ from .crud_views import (
     service_list,
     service_update,
 )
-from .views import login_view, logout_view
+from .views import login_view, logout_view, register_view
 
 urlpatterns = [
     path('login/', login_view, name='login'),
+    path('register/', register_view, name='register'),
     path('logout/', logout_view, name='logout'),
 
     path('customers/', customer_list, name='customers'),

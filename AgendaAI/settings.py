@@ -36,7 +36,7 @@ if not SECRET_KEY:
 
 DEBUG = os.environ.get(
     "DEBUG",
-    "False",
+    "True",
 ).lower() in {"1", "true", "yes", "on"}
 
 
@@ -57,10 +57,18 @@ def csv_env(name, default=""):
 # Hosts / CSRF
 # ---------------------------------------------------------------------------
 
-ALLOWED_HOSTS = csv_env(
-    "ALLOWED_HOSTS",
-    "localhost,127.0.0.1,.vercel.app,.pythonanywhere.com,.onrender.com",
-)
+base_allowed_hosts = [
+    "localhost",
+    "127.0.0.1",
+    "testserver",
+    ".vercel.app",
+    ".pythonanywhere.com",
+    ".onrender.com",
+]
+
+ALLOWED_HOSTS = list(dict.fromkeys(
+    csv_env("ALLOWED_HOSTS", ",".join(base_allowed_hosts)) + base_allowed_hosts
+))
 
 CSRF_TRUSTED_ORIGINS = csv_env(
     "CSRF_TRUSTED_ORIGINS",

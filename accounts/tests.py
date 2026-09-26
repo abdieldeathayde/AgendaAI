@@ -183,6 +183,51 @@ class AppointmentStatusFilterTests(TestCase):
         self.assertIn('João', response.content.decode('utf-8'))
 
 
+class UserRegistrationTests(TestCase):
+    def test_root_redirects_to_register_and_register_redirects_to_login(self):
+        response = self.client.get('/')
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(response.url, reverse('register'))
+
+        response = self.client.post(
+            reverse('register'),
+            {
+                'username': 'novo_usuario',
+                'first_name': 'Novo',
+                'last_name': 'Usuário',
+                'email': 'novo@email.com',
+                'phone': '11999999999',
+                'password1': 'Teste@1234',
+                'password2': 'Teste@1234',
+            },
+        )
+
+        self.assertRedirects(response, reverse('login'))
+        self.assertTrue(User.objects.filter(username='novo_usuario').exists())
+        self.assertTrue(User.objects.get(username='novo_usuario').is_customer)
+
+    def test_register_page_loads_and_creates_user(self):
+        response = self.client.get(reverse('register'))
+        self.assertEqual(response.status_code, 200)
+
+        response = self.client.post(
+            reverse('register'),
+            {
+                'username': 'novo_usuario_2',
+                'first_name': 'Novo',
+                'last_name': 'Usuário',
+                'email': 'novo2@email.com',
+                'phone': '11999999998',
+                'password1': 'Teste@1234',
+                'password2': 'Teste@1234',
+            },
+        )
+
+        self.assertEqual(response.status_code, 302)
+        self.assertTrue(User.objects.filter(username='novo_usuario_2').exists())
+        self.assertTrue(User.objects.get(username='novo_usuario_2').is_customer)
+
+
 class ManagementPagesTests(TestCase):
     def setUp(self):
         self.user = User.objects.create_user(username='admin', password='123456', email='admin@example.com')
