@@ -210,6 +210,60 @@ mariana.alves
 
 **Importante:** são credenciais fictícias destinadas somente à demonstração. Troque as senhas em qualquer ambiente público.
 
+## ☁️ Deploy no PythonAnywhere
+
+O projeto já foi preparado para funcionar no PythonAnywhere com `gunicorn` e `whitenoise`.
+
+### 1. Configurar o projeto no PythonAnywhere
+
+- Crie um novo app web e escolha `Manual configuration`.
+- Defina o caminho do projeto para a pasta raiz do repositório.
+- Configure o WSGI para apontar para `AgendaAI.wsgi.application`.
+- Em `Settings`, configure:
+
+```env
+DEBUG=False
+SECRET_KEY=sua-chave-secreta-forte
+ALLOWED_HOSTS=seu_usuario.pythonanywhere.com
+CSRF_TRUSTED_ORIGINS=https://seu_usuario.pythonanywhere.com
+CORS_ALLOWED_ORIGINS=https://seu_usuario.pythonanywhere.com
+SECURE_PROXY_SSL_HEADER=HTTP_X_FORWARDED_PROTO,https
+SECURE_SSL_REDIRECT=True
+DATABASE_URL=mysql://usuario:senha@seu_host:3306/seu_banco
+```
+
+### 2. Criar o banco MySQL no PythonAnywhere
+
+- Acesse o painel de banco de dados do PythonAnywhere.
+- Crie um banco MySQL ou use o serviço oferecido pela plataforma.
+- Ajuste a `DATABASE_URL` com os dados reais do banco.
+
+### 3. Coletar arquivos estáticos
+
+```bash
+python manage.py collectstatic --noinput
+```
+
+### 4. Rodar as migrações
+
+```bash
+python manage.py migrate
+```
+
+### 5. Criar superusuário
+
+```bash
+python manage.py createsuperuser
+```
+
+### 6. Opcional: popular dados de demonstração
+
+```bash
+python manage.py seed_data
+```
+
+> Se o projeto estiver em domínio do PythonAnywhere, o host deve ser adicionado em `ALLOWED_HOSTS` e `CSRF_TRUSTED_ORIGINS` para que admin + formulários funcionem corretamente.
+
 ## ♻️ Recriar a base de demonstração
 
 Para apagar os registros de demonstração e gerar tudo novamente:

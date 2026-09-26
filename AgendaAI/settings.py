@@ -59,11 +59,12 @@ def csv_env(name, default=""):
 
 ALLOWED_HOSTS = csv_env(
     "ALLOWED_HOSTS",
-    "localhost,127.0.0.1",
+    "localhost,127.0.0.1,.pythonanywhere.com",
 )
 
 CSRF_TRUSTED_ORIGINS = csv_env(
     "CSRF_TRUSTED_ORIGINS",
+    "http://localhost:8000,https://*.pythonanywhere.com",
 )
 
 
@@ -335,6 +336,13 @@ if not DEBUG:
     SESSION_COOKIE_SECURE = True
 
     CSRF_COOKIE_SECURE = True
+
+    SECURE_PROXY_SSL_HEADER = tuple(
+        os.environ.get(
+            "SECURE_PROXY_SSL_HEADER",
+            "HTTP_X_FORWARDED_PROTO,https",
+        ).split(",")
+    )
 
     SECURE_SSL_REDIRECT = (
         os.environ.get(
