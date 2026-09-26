@@ -6,6 +6,10 @@ from .forms import LoginForm, UserRegistrationForm
 
 
 def login_view(request):
+    next_url = request.POST.get('next') or request.GET.get('next') or 'dashboard'
+    if next_url in {'', '/'}:
+        next_url = 'dashboard'
+
     if request.method == 'POST':
         form = LoginForm(request.POST)
         if form.is_valid():
@@ -15,7 +19,7 @@ def login_view(request):
             if user is not None:
                 login(request, user)
                 messages.success(request, 'Login realizado com sucesso.')
-                return redirect('dashboard')
+                return redirect(next_url)
             form.add_error(None, 'Credenciais inválidas.')
     else:
         form = LoginForm()

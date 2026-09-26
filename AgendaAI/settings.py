@@ -19,8 +19,9 @@ from django.core.exceptions import ImproperlyConfigured
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-# Carrega o .env localizado na raiz do projeto
-load_dotenv(BASE_DIR / ".env")
+# Carrega o .env localizado na raiz do projeto sem sobrescrever variáveis
+# configuradas explicitamente no ambiente de deploy (Render, OCI, etc.).
+load_dotenv(BASE_DIR / ".env", override=False)
 
 
 # ---------------------------------------------------------------------------
@@ -36,7 +37,7 @@ if not SECRET_KEY:
 
 DEBUG = os.environ.get(
     "DEBUG",
-    "True",
+    "False",
 ).lower() in {"1", "true", "yes", "on"}
 
 

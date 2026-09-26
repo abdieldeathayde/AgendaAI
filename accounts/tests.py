@@ -206,6 +206,17 @@ class UserRegistrationTests(TestCase):
         self.assertTrue(User.objects.filter(username='novo_usuario').exists())
         self.assertTrue(User.objects.get(username='novo_usuario').is_customer)
 
+    def test_login_redirects_to_dashboard_when_next_is_root(self):
+        User.objects.create_user(username='login_user', password='Teste@1234', email='login@email.com')
+
+        response = self.client.post(
+            '/accounts/login/?next=/',
+            {'username': 'login_user', 'password': 'Teste@1234'},
+        )
+
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(response.url, '/dashboard/')
+
     def test_register_page_loads_and_creates_user(self):
         response = self.client.get(reverse('register'))
         self.assertEqual(response.status_code, 200)
