@@ -210,61 +210,196 @@ mariana.alves
 
 **Importante:** são credenciais fictícias destinadas somente à demonstração. Troque as senhas em qualquer ambiente público.
 
-## ☁️ Deploy no PythonAnywhere
+## ☁️ Deploy na Oracle OCI (Always Free)
 
-O projeto já foi preparado para funcionar no PythonAnywhere com `gunicorn` e `whitenoise`.
+O projeto já está preparado para rodar em uma VM Ubuntu gratuita da OCI com `gunicorn`, `nginx` e `whitenoise`.
 
-### 1. Configurar o projeto no PythonAnywhere
+### 1. Preparar a VM Ubuntu na OCI
 
-- Crie um novo app web e escolha `Manual configuration`.
-- Defina o caminho do projeto para a pasta raiz do repositório.
-- Configure o WSGI para apontar para `AgendaAI.wsgi.application`.
-- Em `Settings`, configure:
-
-```env
-DEBUG=False
-SECRET_KEY=sua-chave-secreta-forte
-ALLOWED_HOSTS=seu_usuario.pythonanywhere.com
-CSRF_TRUSTED_ORIGINS=https://seu_usuario.pythonanywhere.com
-CORS_ALLOWED_ORIGINS=https://seu_usuario.pythonanywhere.com
-SECURE_PROXY_SSL_HEADER=HTTP_X_FORWARDED_PROTO,https
-SECURE_SSL_REDIRECT=True
-DATABASE_URL=mysql://usuario:senha@seu_host:3306/seu_banco
-```
-
-### 2. Criar o banco MySQL no PythonAnywhere
-
-- Acesse o painel de banco de dados do PythonAnywhere.
-- Crie um banco MySQL ou use o serviço oferecido pela plataforma.
-- Ajuste a `DATABASE_URL` com os dados reais do banco.
-
-### 3. Coletar arquivos estáticos
+- Crie uma instância Ubuntu na OCI Always Free.
+- Abra as portas `80`, `443` e `22` no Security List / NSG.
+- Conecte-se via SSH e instale dependências:
 
 ```bash
-python manage.py collectstatic --noinput
+sudo apt update
+sudo apt install -y python3 python3-venv python3-pip nginx git mysql-client
 ```
 
-### 4. Rodar as migrações
+### 2. Clonar o projeto
+
+```bash
+cd ~/ && git clone https://github.com/seu-usuario/AgendaAI.git
+cd AgendaAI
+python3 -m venv .venv
+source .venv/bin/activate
+pip install --upgrade pip
+pip install -r requirements.txt
+```
+
+### 3. Configurar variáveis de ambiente
+
+Crie um arquivo `.env` com algo parecido com:
+
+```env
+SECRET_KEY=sua-chave-secreta-forte
+DEBUG=False
+ALLOWED_HOSTS=localhost,127.0.0.1,meu-dominio.com,123.45.67.89
+CSRF_TRUSTED_ORIGINS=https://meu-dominio.com,https://www.meu-dominio.com,https://123.45.67.89
+CORS_ALLOWED_ORIGINS=https://meu-dominio.com,https://www.meu-dominio.com,https://123.45.67.89
+SECURE_PROXY_SSL_HEADER=HTTP_X_FORWARDED_PROTO,https
+SECURE_SSL_REDIRECT=True
+DATABASE_URL=mysql://usuario:senha@host:3306/banco
+DEFAULT_FROM_EMAIL=no-reply@meu-dominio.com
+EMAIL_BACKEND=django.core.mail.backends.smtp.EmailBackend
+```
+
+> Se você utilizar um banco MySQL Gratuito da OCI ou um serviço externo, ajuste a `DATABASE_URL` com os dados reais.
+
+### 4. Rodar migrações e coletar arquivos estáticos
 
 ```bash
 python manage.py migrate
+python manage.py collectstatic --noinput
 ```
 
-### 5. Criar superusuário
+### 5. Criar administrador
 
 ```bash
 python manage.py createsuperuser
 ```
 
-### 6. Opcional: popular dados de demonstração
+### 6. Popular dados de demonstração (opcional)
 
 ```bash
 python manage.py seed_data
 ```
 
-> Se o projeto estiver em domínio do PythonAnywhere, o host deve ser adicionado em `ALLOWED_HOSTS` e `CSRF_TRUSTED_ORIGINS` para que admin + formulários funcionem corretamente.
+### 7. Iniciar o Gunicorn
+
+O projeto já usa Gunicorn via `requirements.txt` e suporta o comando:
+
+```bash
+gunicorn AgendaAI.wsgi:application --bind 0.0.0.0:8000 --workers 3
+```
+
+Para manter em execução em background, use `systemd` ou `nohup`.
+
+### 8. Configurar Nginx como proxy reverso
+
+Crie um arquivo no Nginx:
+
+```nginx
+server {
+    listen 80;
+    server_name meu-dominio.com 123.45.67.89;
+
+    location /static/ {
+        alias /home/ubuntu/AgendaAI/staticfiles/;
+    }
+
+    location /media/ {
+        alias /home/ubuntu/AgendaAI/media/;
+    }
+
+    location / {
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+        proxy_pass http://127.0.0.1:8000;
+    }
+}
+```
+
+Ative o site:
+
+```bash
+sudo ln -s /etc/nginx/sites-available/agendaai /etc/nginx/sites-enabled/
+sudo nginx -t
+sudo systemctl restart nginx
+```
+
+### 9. SSL com Let's Encrypt (recomendado)
+
+```bash
+sudo apt install -y certbot python3-certbot-nginx
+sudo certbot --nginx -d meu-dominio.com
+```
+
+> Em ambientes com TLS concluído no Nginx, o Django precisa receber o header `X-Forwarded-Proto=https`, por isso a variável `SECURE_PROXY_SSL_HEADER` foi adicionada no projeto.
+
+### 10. Dicas para OCI grátis
+
+- Use uma VM Ubuntu pequena e deixe o `gunicorn` rodando em background.
+- No OCI, o domínio público geralmente é configurado por DNS externo, então o `ALLOWED_HOSTS` deve incluir o domínio e o IP público.
+- Para evitar problemas com CSRF e cookies em HTTPS, inclua o domínio real em `CSRF_TRUSTED_ORIGINS`.
+
+## ☁️ Deploy no Render
+
+O projeto já está preparado para funcionar no Render com um serviço web em Python e banco externo.
+
+### 1. Variáveis de ambiente no Render
+
+Configure no painel do Render:
+
+```env
+SECRET_KEY=sua-chave-secreta-forte
+DEBUG=False
+ALLOWED_HOSTS=localhost,127.0.0.1,.onrender.com
+CSRF_TRUSTED_ORIGINS=https://*.onrender.com
+CORS_ALLOWED_ORIGINS=https://*.onrender.com
+DATABASE_URL=postgres://usuario:senha@host:5432/banco
+SECURE_SSL_REDIRECT=True
+SECURE_PROXY_SSL_HEADER=HTTP_X_FORWARDED_PROTO,https
+```
+
+### 2. Build e start do serviço
+
+No Render, use:
+
+- Build Command:
+
+```bash
+pip install -r requirements.txt && python manage.py collectstatic --noinput
+```
+
+- Start Command:
+
+```bash
+gunicorn AgendaAI.wsgi:application --bind 0.0.0.0:$PORT --workers 2
+```
+
+### 3. Banco de dados
+
+Use um banco externo do Render ou de outro provedor e informe a URL em `DATABASE_URL`.
+
+### 4. Migrações
+
+Antes de testar a aplicação, rode no shell do Render ou em um job de deploy:
+
+```bash
+python manage.py migrate
+```
+
+### 5. Dados de demonstração
+
+Opcionalmente, você pode popular o banco com os dados de exemplo:
+
+```bash
+python manage.py seed_data
+```
+
+> O domínio do Render geralmente é do tipo `https://nome-do-servico.onrender.com`; por isso o host `*.onrender.com` deve estar em `ALLOWED_HOSTS` e `CSRF_TRUSTED_ORIGINS`.
 
 ## ♻️ Recriar a base de demonstração
+
+Para apagar os registros de demonstração e gerar tudo novamente:
+
+```powershell
+python manage.py seed_data --reset
+```
+
+Para usar outra senha nos usuários comuns:
 
 Para apagar os registros de demonstração e gerar tudo novamente:
 

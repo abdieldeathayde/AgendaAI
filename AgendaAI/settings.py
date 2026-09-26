@@ -59,12 +59,12 @@ def csv_env(name, default=""):
 
 ALLOWED_HOSTS = csv_env(
     "ALLOWED_HOSTS",
-    "localhost,127.0.0.1,.pythonanywhere.com",
+    "localhost,127.0.0.1,.vercel.app,.pythonanywhere.com,.onrender.com",
 )
 
 CSRF_TRUSTED_ORIGINS = csv_env(
     "CSRF_TRUSTED_ORIGINS",
-    "http://localhost:8000,https://*.pythonanywhere.com",
+    "http://localhost:8000,https://*.vercel.app,https://*.pythonanywhere.com,https://*.onrender.com",
 )
 
 
