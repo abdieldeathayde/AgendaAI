@@ -9,8 +9,11 @@ from datetime import timedelta
 from pathlib import Path
 
 import dj_database_url
+import pymysql
 from dotenv import load_dotenv
 from django.core.exceptions import ImproperlyConfigured
+
+pymysql.install_as_MySQLdb()
 
 
 # ---------------------------------------------------------------------------
