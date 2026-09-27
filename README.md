@@ -334,6 +334,52 @@ sudo certbot --nginx -d meu-dominio.com
 - No OCI, o domínio público geralmente é configurado por DNS externo, então o `ALLOWED_HOSTS` deve incluir o domínio e o IP público.
 - Para evitar problemas com CSRF e cookies em HTTPS, inclua o domínio real em `CSRF_TRUSTED_ORIGINS`.
 
+## ☁️ Deploy na Hostinger
+
+A Hostinger aceita a publicação de apps Python com Gunicorn, normalmente usando uma variável de ambiente `PORT` e um comando de inicialização. Para o projeto AgendaAI, o preparo mínimo é:
+
+### 1. Variáveis de ambiente na Hostinger
+
+No painel da Hostinger, configure estas variáveis no app Python:
+
+```env
+SECRET_KEY=sua-chave-secreta-forte
+DEBUG=False
+ALLOWED_HOSTS=localhost,127.0.0.1,.hostingerapp.com,meu-dominio.com,www.meu-dominio.com
+CSRF_TRUSTED_ORIGINS=https://meu-dominio.com,https://www.meu-dominio.com,https://*.hostingerapp.com
+CORS_ALLOWED_ORIGINS=https://meu-dominio.com,https://www.meu-dominio.com,https://*.hostingerapp.com
+SECURE_PROXY_SSL_HEADER=HTTP_X_FORWARDED_PROTO,https
+SECURE_SSL_REDIRECT=True
+DATABASE_URL=mysql://usuario:senha@host:3306/banco
+```
+
+> Se a aplicação estiver em um domínio personalizado, inclua o domínio real em `ALLOWED_HOSTS` e em `CSRF_TRUSTED_ORIGINS`.
+
+### 2. Comando de inicialização
+
+Use esse comando de startup no painel da Hostinger ou em um arquivo de execução:
+
+```bash
+bash startup.sh
+```
+
+O script executa automaticamente:
+
+- `python manage.py migrate --noinput`
+- `python manage.py collectstatic --noinput`
+- `gunicorn app:app --bind 0.0.0.0:${PORT:-80} --workers 2 --timeout 120`
+
+### 3. Dicas para domínio e HTTPS
+
+- Se o app estiver usando o subdomínio da Hostinger, inclua `.hostingerapp.com` em `ALLOWED_HOSTS`.
+- Se estiver em domínio próprio, adicione `meu-dominio.com` e `www.meu-dominio.com`.
+- O `SECURE_PROXY_SSL_HEADER` é importante porque a Hostinger termina o TLS antes de enviar a requisição para o app.
+- Se o painel exigir um comando direto em vez de `bash startup.sh`, use:
+
+```bash
+gunicorn app:app --bind 0.0.0.0:${PORT:-80} --workers 2 --timeout 120
+```
+
 ## ☁️ Deploy no Render
 
 O projeto já está preparado para funcionar no Render com um serviço web em Python e banco externo.

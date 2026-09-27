@@ -68,6 +68,8 @@ base_allowed_hosts = [
     ".vercel.app",
     ".pythonanywhere.com",
     ".onrender.com",
+    ".hostingerapp.com",
+    ".hostinger.com",
 ]
 
 VERCEL_URL = os.environ.get("VERCEL_URL")
@@ -80,7 +82,7 @@ ALLOWED_HOSTS = list(dict.fromkeys(
 
 csrf_origins = csv_env(
     "CSRF_TRUSTED_ORIGINS",
-    "http://localhost:8000,https://*.vercel.app,https://*.pythonanywhere.com,https://*.onrender.com",
+    "http://localhost:8000,https://*.vercel.app,https://*.pythonanywhere.com,https://*.onrender.com,https://*.hostingerapp.com,https://*.hostinger.com",
 )
 if VERCEL_URL:
     csrf_origins.extend([
@@ -273,7 +275,7 @@ MEDIA_ROOT.mkdir(parents=True, exist_ok=True)
 
 CORS_ALLOWED_ORIGINS = csv_env(
     "CORS_ALLOWED_ORIGINS",
-    "https://*.vercel.app,http://localhost:3000,http://localhost:5173",
+    "https://*.vercel.app,https://*.hostingerapp.com,https://*.hostinger.com,http://localhost:3000,http://localhost:5173",
 )
 
 
