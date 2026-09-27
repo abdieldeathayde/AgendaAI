@@ -246,10 +246,12 @@ USE_TZ = True
 # ---------------------------------------------------------------------------
 # Static / Media
 # ---------------------------------------------------------------------------
+# A Vercel usa um filesystem somente leitura em /var/task, então os diretórios
+# de static/media precisam cair em um local gravável como /tmp.
 
 STATIC_URL = "/static/"
-STATIC_ROOT = BASE_DIR / "staticfiles"
-os.makedirs(STATIC_ROOT, exist_ok=True)
+STATIC_ROOT = Path(os.environ.get("STATIC_ROOT", "/tmp/staticfiles"))
+STATIC_ROOT.mkdir(parents=True, exist_ok=True)
 
 STORAGES = {
     "default": {
@@ -261,7 +263,8 @@ STORAGES = {
 }
 
 MEDIA_URL = "/media/"
-MEDIA_ROOT = BASE_DIR / "media"
+MEDIA_ROOT = Path(os.environ.get("MEDIA_ROOT", "/tmp/media"))
+MEDIA_ROOT.mkdir(parents=True, exist_ok=True)
 
 
 # ---------------------------------------------------------------------------
