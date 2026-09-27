@@ -70,14 +70,24 @@ base_allowed_hosts = [
     ".onrender.com",
 ]
 
+VERCEL_URL = os.environ.get("VERCEL_URL")
+if VERCEL_URL:
+    base_allowed_hosts.append(VERCEL_URL.replace("https://", "").replace("http://", ""))
+
 ALLOWED_HOSTS = list(dict.fromkeys(
     csv_env("ALLOWED_HOSTS", ",".join(base_allowed_hosts)) + base_allowed_hosts
 ))
 
-CSRF_TRUSTED_ORIGINS = csv_env(
+csrf_origins = csv_env(
     "CSRF_TRUSTED_ORIGINS",
     "http://localhost:8000,https://*.vercel.app,https://*.pythonanywhere.com,https://*.onrender.com",
 )
+if VERCEL_URL:
+    csrf_origins.extend([
+        f"https://{VERCEL_URL}",
+        f"http://{VERCEL_URL}",
+    ])
+CSRF_TRUSTED_ORIGINS = list(dict.fromkeys(csrf_origins))
 
 
 # ---------------------------------------------------------------------------
@@ -165,7 +175,11 @@ TEMPLATES = [
 # Database
 # ---------------------------------------------------------------------------
 
-DATABASE_URL = os.environ.get("DATABASE_URL")
+DATABASE_URL = (
+    os.environ.get("DATABASE_URL")
+    or os.environ.get("POSTGRES_URL")
+    or os.environ.get("POSTGRES_PRISMA_URL")
+)
 
 if DATABASE_URL:
     DATABASES = {
@@ -256,6 +270,7 @@ MEDIA_ROOT = BASE_DIR / "media"
 
 CORS_ALLOWED_ORIGINS = csv_env(
     "CORS_ALLOWED_ORIGINS",
+    "https://*.vercel.app,http://localhost:3000,http://localhost:5173",
 )
 
 
